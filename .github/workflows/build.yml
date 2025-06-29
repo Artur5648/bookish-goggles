@@ -1,0 +1,38 @@
+name: Build Sideband APK (voice unlocked)
+
+on:
+  workflow_dispatch:        # старт ручной кнопкой “Run workflow”
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout Sideband
+      uses: actions/checkout@v4
+      with:
+        repository: markqvist/Sideband
+        ref: v1.6.1                 # фиксируемся на релизе 1.6.1
+
+    - name: Install build deps
+      run: |
+        sudo apt update
+        sudo apt install -y openjdk-17-jdk python3-pip ffmpeg \
+             libportaudio-dev libcodec2-1.0 build-essential zip unzip
+        pip install buildozer==1.5.0 cython==3.0.10
+
+    - name: Patch: always enable calls
+      run: |
+        sed -i 's/enable_voice_calls = False/enable_voice_calls = True/' \
+            sbapp/sideband/config.py
+        sed -i '/android.permissions/s/$/,RECORD_AUDIO,MODIFY_AUDIO_SETTINGS/' \
+            sbapp/buildozer.spec
+
+    - name: Build APK
+      working-directory: sbapp
+      run: buildozer android debug
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Sideband_1.6.1_voice_unlocked.apk
+        path: sbapp/bin/*.apk
