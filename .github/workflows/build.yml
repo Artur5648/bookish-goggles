@@ -1,4 +1,4 @@
-name: Build Sideband APK (voice unlocked)
+name: Build Sideband APK (Voice Unlocked)
 
 on:
   workflow_dispatch:
@@ -6,148 +6,34 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+
     steps:
-      - name: Clone Sideband
-        run: |
-          git clone --branch v1.6.1 https://github.com/markqvist/Sideband.git
+      - name: Clone Sideband source
+        uses: actions/checkout@v4
+        with:
+          repository: markqvist/Sideband
+          ref: v1.6.1
 
       - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y openjdk-17-jdk python3-pip ffmpeg \
-            libportaudio-dev libcodec2-dev build-essential zip unzip
-          pip install buildozer==1.5.0 cython
+            libportaudio-dev libcodec2-dev build-essential zip unzip git
+          pip install buildozer==1.5.0 cython==3.0.10
 
-      - name: Enable voice and patch permissions
-        working-directory: Sideband/sbapp
+      - name: Enable voice calls and set permissions
+        working-directory: sbapp
         run: |
-          # Включаем голосовые вызовы
           sed -i 's/enable_voice_calls = False/enable_voice_calls = True/' sideband/config.py
-
-          # Добавляем разрешения
           sed -i '/^android.permissions/d' buildozer.spec
-          echo 'android.permissions = RECORD_AUDIO, MODIFY_AUDIO_SETTINGS, INTERNET, VIBRATE, WAKE_LOCK' >> buildozer.spec
+          echo "android.permissions = RECORD_AUDIO, MODIFY_AUDIO_SETTINGS, INTERNET, VIBRATE, WAKE_LOCK" >> buildozer.spec
 
       - name: Build APK
-        working-directory: Sideband/sbapp
+        working-directory: sbapp
         run: buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Sideband-voice-enabled
-          path: Sideband/sbapp/bin/*.apkname: Build Sideband APK (voice unlocked)
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Clone Sideband
-        run: |
-          git clone --branch v1.6.1 https://github.com/markqvist/Sideband.git
-
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y openjdk-17-jdk python3-pip ffmpeg \
-            libportaudio-dev libcodec2-dev build-essential zip unzip
-          pip install buildozer==1.5.0 cython
-
-      - name: Enable voice and patch permissions
-        working-directory: Sideband/sbapp
-        run: |
-          # Включаем голосовые вызовы
-          sed -i 's/enable_voice_calls = False/enable_voice_calls = True/' sideband/config.py
-
-          # Добавляем разрешения
-          sed -i '/^android.permissions/d' buildozer.spec
-          echo 'android.permissions = RECORD_AUDIO, MODIFY_AUDIO_SETTINGS, INTERNET, VIBRATE, WAKE_LOCK' >> buildozer.spec
-
-      - name: Build APK
-        working-directory: Sideband/sbapp
-        run: buildozer android debug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Sideband-voice-enabled
-          path: Sideband/sbapp/bin/*.apkname: Build Sideband APK (voice unlocked)
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Clone Sideband
-        run: |
-          git clone --branch v1.6.1 https://github.com/markqvist/Sideband.git
-
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y openjdk-17-jdk python3-pip ffmpeg \
-            libportaudio-dev libcodec2-dev build-essential zip unzip
-          pip install buildozer==1.5.0 cython
-
-      - name: Enable voice and patch permissions
-        working-directory: Sideband/sbapp
-        run: |
-          # Включаем голосовые вызовы
-          sed -i 's/enable_voice_calls = False/enable_voice_calls = True/' sideband/config.py
-
-          # Добавляем разрешения
-          sed -i '/^android.permissions/d' buildozer.spec
-          echo 'android.permissions = RECORD_AUDIO, MODIFY_AUDIO_SETTINGS, INTERNET, VIBRATE, WAKE_LOCK' >> buildozer.spec
-
-      - name: Build APK
-        working-directory: Sideband/sbapp
-        run: buildozer android debug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Sideband-voice-enabled
-          path: Sideband/sbapp/bin/*.apkname: Build Sideband APK (voice unlocked)
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Clone Sideband
-        run: |
-          git clone --branch v1.6.1 https://github.com/markqvist/Sideband.git
-
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y openjdk-17-jdk python3-pip ffmpeg \
-            libportaudio-dev libcodec2-dev build-essential zip unzip
-          pip install buildozer==1.5.0 cython
-
-      - name: Enable voice and patch permissions
-        working-directory: Sideband/sbapp
-        run: |
-          # Включаем голосовые вызовы
-          sed -i 's/enable_voice_calls = False/enable_voice_calls = True/' sideband/config.py
-
-          # Добавляем разрешения
-          sed -i '/^android.permissions/d' buildozer.spec
-          echo 'android.permissions = RECORD_AUDIO, MODIFY_AUDIO_SETTINGS, INTERNET, VIBRATE, WAKE_LOCK' >> buildozer.spec
-
-      - name: Build APK
-        working-directory: Sideband/sbapp
-        run: buildozer android debug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Sideband-voice-enabled
-          path: Sideband/sbapp/bin/*.apk
+          path: sbapp/bin/*.apk
