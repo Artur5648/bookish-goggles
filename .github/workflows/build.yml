@@ -1,7 +1,7 @@
 name: Build Sideband APK (voice unlocked)
 
 on:
-  workflow_dispatch:        # запуск вручную по кнопке
+  workflow_dispatch:
 
 jobs:
   build:
@@ -20,12 +20,14 @@ jobs:
             libportaudio-dev libcodec2-dev build-essential zip unzip
           pip install buildozer cython
 
-      - name: Patch: enable voice calls
+      - name: Patch config.py and buildozer.spec
         run: |
-          sed -i 's/enable_voice_calls = False/enable_voice_calls = True/' \
-            sbapp/sideband/config.py
-          # Добавим разрешения прямо в buildozer.spec
-          echo "android.permissions = RECORD_AUDIO, MODIFY_AUDIO_SETTINGS, INTERNET, VIBRATE, WAKE_LOCK" >> sbapp/buildozer.spec
+          # Включаем звонки в config.py
+          sed -i 's/enable_voice_calls = False/enable_voice_calls = True/' sbapp/sideband/config.py
+
+          # Добавляем разрешения в buildozer.spec
+          sed -i '/^android.permissions/d' sbapp/buildozer.spec
+          echo 'android.permissions = RECORD_AUDIO, MODIFY_AUDIO_SETTINGS, INTERNET, VIBRATE, WAKE_LOCK' >> sbapp/buildozer.spec
 
       - name: Build APK
         working-directory: sbapp
@@ -38,7 +40,7 @@ jobs:
           path: sbapp/bin/*.apkname: Build Sideband APK (voice unlocked)
 
 on:
-  workflow_dispatch:        # запуск вручную по кнопке
+  workflow_dispatch:
 
 jobs:
   build:
@@ -57,12 +59,53 @@ jobs:
             libportaudio-dev libcodec2-dev build-essential zip unzip
           pip install buildozer cython
 
-      - name: Patch: enable voice calls
+      - name: Patch config.py and buildozer.spec
         run: |
-          sed -i 's/enable_voice_calls = False/enable_voice_calls = True/' \
-            sbapp/sideband/config.py
-          # Добавим разрешения прямо в buildozer.spec
-          echo "android.permissions = RECORD_AUDIO, MODIFY_AUDIO_SETTINGS, INTERNET, VIBRATE, WAKE_LOCK" >> sbapp/buildozer.spec
+          # Включаем звонки в config.py
+          sed -i 's/enable_voice_calls = False/enable_voice_calls = True/' sbapp/sideband/config.py
+
+          # Добавляем разрешения в buildozer.spec
+          sed -i '/^android.permissions/d' sbapp/buildozer.spec
+          echo 'android.permissions = RECORD_AUDIO, MODIFY_AUDIO_SETTINGS, INTERNET, VIBRATE, WAKE_LOCK' >> sbapp/buildozer.spec
+
+      - name: Build APK
+        working-directory: sbapp
+        run: buildozer android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sideband-voice-enabled
+          path: sbapp/bin/*.apkname: Build Sideband APK (voice unlocked)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Sideband
+        uses: actions/checkout@v4
+        with:
+          repository: markqvist/Sideband
+          ref: v1.6.1
+
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y openjdk-17-jdk python3-pip ffmpeg \
+            libportaudio-dev libcodec2-dev build-essential zip unzip
+          pip install buildozer cython
+
+      - name: Patch config.py and buildozer.spec
+        run: |
+          # Включаем звонки в config.py
+          sed -i 's/enable_voice_calls = False/enable_voice_calls = True/' sbapp/sideband/config.py
+
+          # Добавляем разрешения в buildozer.spec
+          sed -i '/^android.permissions/d' sbapp/buildozer.spec
+          echo 'android.permissions = RECORD_AUDIO, MODIFY_AUDIO_SETTINGS, INTERNET, VIBRATE, WAKE_LOCK' >> sbapp/buildozer.spec
 
       - name: Build APK
         working-directory: sbapp
